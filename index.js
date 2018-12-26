@@ -1,27 +1,28 @@
-'use strict';
-const nodemailer = require('nodemailer');
+import nodemailer from 'nodemailer'
 
-// Generate test SMTP service account from ethereal.email
-// Only needed if you don't have a real mail account for testing
-nodemailer.createTestAccount((err, account) => {
-    // create reusable transporter object using the default SMTP transport
+exports.handler = (event, context, callback) => {
+  const item = JSON.parse(event.body)
+  let name = item.name;
+  let emailAddress = item.email;
+  let message = item.message;
+   nodemailer.createTestAccount((err, account) => {
     let transporter = nodemailer.createTransport({
-        host: 'cpanel.@@@@@@@.com',
-        port: 587,
-        secure: false, // true for 465, false for other ports
+        host: 'cpanel.freehosting.com',
+        port: 465,
+        secure: true, // true for 465, false for other ports
         auth: {
-            user: 'info@kkbeverages.in', // generated ethereal user
-            pass: '@@@@@@@@@@' // generated ethereal password
+            user: 'info@kkbeverages.in',
+            pass: 'Smart1$1'
         }
     });
 
     // setup email data with unicode symbols
     let mailOptions = {
-        from: 'info@kkbeverages.in', // sender address
-        to: 'rpanchal@yahoo.com', // list of receivers
-        subject: 'Hello Testing mail', // Subject line
-        text: 'Hello world', // plain text body
-        html: '<b>Hello world?</b>' // html body
+        from: 'info@kkbeverages.in',
+        to: 'info@kkbeverages.in',
+        subject: 'Inquiry comes from '+name,
+        text: 'Hello world',
+        html: 'Dear KK Beverages<br/><br/> Please find below inquiry for your product <br/><br/>'+message
     };
 
     // send mail with defined transport object
@@ -29,7 +30,18 @@ nodemailer.createTestAccount((err, account) => {
         if (error) {
             return console.log(error);
         }
+
+        const response = {
+            statusCode: 200,
+            headers: {
+              "Access-Control-Allow-Origin" : "*", // Required for CORS support to work
+              "Access-Control-Allow-Credentials" : true // Required for cookies, authorization headers with HTTPS
+            },
+            body: JSON.stringify({ "message": 'Message sent: %s'+ info.messageId })
+          };
+          callback(null, response); 
         console.log('Message sent: %s', info.messageId);
         console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
     });
-});
+   });
+};
